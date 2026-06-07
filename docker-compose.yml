@@ -1,0 +1,14 @@
+﻿services:
+  weather-mail:
+    build: .
+    container_name: wuxi-weather-email
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Hong_Kong
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
