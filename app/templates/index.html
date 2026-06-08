@@ -1,0 +1,39 @@
+﻿{% extends "base.html" %}
+{% block title %}仪表盘 - weather-email{% endblock %}
+{% block content %}
+<h2>📊 仪表盘</h2>
+
+<div class="card-grid">
+    <div class="card">
+        <div class="card-title">📧 邮件配置</div>
+        <div class="card-body">
+            <p><span>SMTP 服务器</span> <strong>{{ config.smtp_server }}:{{ config.smtp_port }}</strong></p>
+            <p><span>发件人</span> <strong>{{ config.smtp_from or '未配置' }}</strong></p>
+            <p><span>收件人</span> <strong>{{ config.email_to or '未配置' }}</strong></p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">🌍 天气设置</div>
+        <div class="card-body">
+            <p><span>目标城市</span> <strong>{{ config.city_display_name }} ({{ config.city }})</strong></p>
+            <p><span>邮件主题前缀</span> <strong>{{ config.subject_prefix }}</strong></p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">⏰ 发送计划</div>
+        <div class="card-body">
+            <p><span>每日发送时间</span> <strong>{{ config.send_hour }}:{{ '%02d'|format(config.send_minute|int) }}</strong></p>
+            <p><span>下次发送</span> <strong>{{ next_run }}</strong></p>
+        </div>
+    </div>
+</div>
+
+<div class="actions">
+    <form method="POST" action="/send-now" style="display:inline">
+        <button type="submit" class="btn btn-primary">🚀 立即发送测试邮件</button>
+    </form>
+    <a href="/config" class="btn btn-secondary">⚙️ 编辑配置</a>
+</div>
+{% endblock %}
