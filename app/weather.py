@@ -41,14 +41,14 @@ def fetch_weather(city):
 
 # ── 天气描述中英对照 (wttr.in JSON API 始终返回英文，此处做转换) ──
 WEATHER_DESC_CN = {
-    "Sunny": "晴",
-    "Clear": "晴",
+    "Sunny": "晴朗",
+    "Clear": "晴朗",
     "Partly Cloudy": "多云",
     "Partly cloudy": "多云",
-    "Cloudy": "阴",
-    "Overcast": "阴",
+    "Cloudy": "阴天",
+    "Overcast": "阴天",
     "Mist": "薄雾",
-    "Fog": "雾",
+    "Fog": "大雾",
     "Freezing fog": "冻雾",
     "Patchy rain possible": "局部阵雨",
     "Patchy rain nearby": "局部阵雨",
@@ -88,11 +88,19 @@ WEATHER_DESC_CN = {
     "Moderate or heavy rain with thunder": "中到大雷雨",
     "Patchy light snow with thunder": "局部小雷雪",
     "Moderate or heavy snow with thunder": "中到大雷雪",
+    "Smoky haze": "灰霾",
 }
 
 def translate_desc(desc):
     """将英文天气描述转为中文"""
-    return WEATHER_DESC_CN.get(desc, desc)
+    desc = desc.strip()
+    if desc in WEATHER_DESC_CN:
+        return WEATHER_DESC_CN[desc]
+    desc_lower = desc.lower()
+    for key, value in WEATHER_DESC_CN.items():
+        if key.lower() == desc_lower:
+            return value
+    return desc
 
 def build_suggestion(temp_c, weather_code):
     """根据温度和天气码生成生活建议"""
