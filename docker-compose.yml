@@ -1,10 +1,10 @@
-﻿services:
+services:
   weather-email:
     build: .
     container_name: weather-email
     restart: unless-stopped
     ports:
-      - "8080:5000"
+      - "8081:5000"
     volumes:
       - weather-email-data:/app/data
     environment:

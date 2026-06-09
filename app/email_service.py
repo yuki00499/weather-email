@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """邮件服务模块 - HTML 模板构建 + SMTP 发送"""
 
 import smtplib
@@ -12,6 +12,7 @@ from email.utils import formataddr
 import pytz
 
 from app.weather import WEATHER_ICONS, WIND_CN, build_suggestion, translate_desc
+from app.chart import build_temperature_chart
 
 log = logging.getLogger(__name__)
 
@@ -51,6 +52,23 @@ def build_html(data, config):
 
     suggestion_text = build_suggestion(temp_c, weather_code)
 
+    # ── 生成气温趋势图表 ──
+    chart_html = ""
+    try:
+        chart_b64 = build_temperature_chart(data)
+        if chart_b64:
+            chart_html = (
+                '<div class="chart-section">'
+                '<img src="data:image/png;base64,' + chart_b64 + '" '
+                'style="width:100%;max-width:560px;display:block;margin:0 auto;border-radius:12px;" '
+                'alt="气温趋势图">'
+                '</div>'
+            )
+        else:
+            log.warning("Chart generation returned no data, skipping chart in email")
+    except Exception as exc:
+        log.warning("Failed to generate temperature chart: %s", exc)
+
     hourly_rows = ""
     for h in hourly:
         hour_str = f"{int(h['time']) // 100:02d}:00"
@@ -67,6 +85,43 @@ def build_html(data, config):
             f"</tr>"
         )
 
+
+    # 未来几日天气表格
+    future_rows = ""
+    future_days = data.get("weather", [])[1:]
+    for day in future_days:
+        day_date = day.get("date", "")
+        try:
+            dt = datetime.strptime(day_date, "%Y-%m-%d")
+            day_label = f"{dt.month}月{dt.day}日 " + WEEKDAY_CN.get(dt.strftime("%A"), dt.strftime("%A"))
+        except (ValueError, TypeError):
+            day_label = day_date
+        day_max = day.get("maxtempC", "")
+        day_min = day.get("mintempC", "")
+        day_hourly = day.get("hourly", [])
+        rep = day_hourly[0] if day_hourly else {}
+        for h in day_hourly:
+            try:
+                htime = int(h.get("time", 0))
+            except (ValueError, TypeError):
+                htime = 0
+            if htime in (1100, 1200, 1300, 1400):
+                rep = h
+                break
+        d_icon = WEATHER_ICONS.get(rep.get("weatherCode", ""), "☀️")
+        d_desc = ""
+        if rep.get("weatherDesc"):
+            d_desc = translate_desc(rep["weatherDesc"][0]["value"])
+        d_rain = rep.get("chanceofrain", "")
+        future_rows += (
+            f"<tr>"
+            f"<td>{day_label}</td>"
+            f"<td>{d_icon} {d_desc}</td>"
+            f"<td>{day_max}°C</td>"
+            f"<td>{day_min}°C</td>"
+            f"<td>{d_rain}%</td>"
+            f"</tr>"
+        )
     html = f"""<!DOCTYPE html>
 <html lang=zh-CN>
 <head>
@@ -83,6 +138,7 @@ def build_html(data, config):
     .weather-icon {{ font-size:64px; }}
     .temperature {{ font-size:56px; font-weight:300; color:#333; margin:10px 0; }}
     .weather-desc {{ font-size:15px; color:#888; }}
+    .chart-section {{ padding:0 20px 10px; }}
     .details {{ display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:0 30px 20px; }}
     .detail-item {{ background:#f8fafc; border-radius:12px; padding:14px; }}
     .detail-label {{ font-size:12px; color:#aaa; margin-bottom:4px; }}
@@ -106,6 +162,7 @@ def build_html(data, config):
         <div class=temperature>{temp_c}°C</div>
         <div class=weather-desc>体感 {feels}°C · {weather_desc}</div>
     </div>
+    {chart_html}
     <div class=details>
         <div class=detail-item><div class=detail-label>最高 / 最低</div><div class=detail-value>{max_temp}°C / {min_temp}°C</div></div>
         <div class=detail-item><div class=detail-label>湿度</div><div class=detail-value>{humidity}%</div></div>
@@ -118,6 +175,11 @@ def build_html(data, config):
     <table class=hourly-table>
         <tr><th>时间</th><th>天气</th><th>温度</th><th>降雨概率</th></tr>
         {hourly_rows}
+    </table>
+    <div class=section-title>📅 未来几日天气</div>
+    <table class=hourly-table>
+        <tr><th>日期</th><th>天气</th><th>最高温</th><th>最低温</th><th>降雨概率</th></tr>
+        {future_rows}
     </table>
     <div class=section-title>💡 生活建议</div>
     <div class=suggestion>{suggestion_text}</div>
