@@ -1,39 +1,85 @@
-﻿{% extends "base.html" %}
-{% block title %}仪表盘 - weather-email{% endblock %}
+{% extends "base.html" %}
+{% block title %}任务 - weather-email{% endblock %}
 {% block content %}
-<h2>📊 仪表盘</h2>
+<section class="page-heading">
+    <div>
+        <p class="eyebrow">任务管理</p>
+        <h1>天气邮件任务</h1>
+    </div>
+    <a href="/tasks/new" class="btn btn-primary">新建任务</a>
+</section>
 
-<div class="card-grid">
-    <div class="card">
-        <div class="card-title">📧 邮件配置</div>
-        <div class="card-body">
-            <p><span>SMTP 服务器</span> <strong>{{ config.smtp_server }}:{{ config.smtp_port }}</strong></p>
-            <p><span>发件人</span> <strong>{{ config.smtp_from or '未配置' }}</strong></p>
-            <p><span>收件人</span> <strong>{{ config.email_to or '未配置' }}</strong></p>
+<section class="stats">
+    <div class="stat">
+        <span class="stat-label">全部任务</span>
+        <strong>{{ stats.total }}</strong>
+    </div>
+    <div class="stat">
+        <span class="stat-label">启用中</span>
+        <strong>{{ stats.enabled }}</strong>
+    </div>
+    <div class="stat stat-wide">
+        <span class="stat-label">最近发送</span>
+        <strong>{{ stats.next_run }}</strong>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <div>
+            <h2>任务列表</h2>
+            <p>每个任务拥有独立的发件邮箱、收件人和发送时间。</p>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-title">🌍 天气设置</div>
-        <div class="card-body">
-            <p><span>目标城市</span> <strong>{{ config.city_display_name }} ({{ config.city }})</strong></p>
-            <p><span>邮件主题前缀</span> <strong>{{ config.subject_prefix }}</strong></p>
+    {% if tasks %}
+    <div class="task-table">
+        <div class="task-row task-head">
+            <div>任务</div>
+            <div>邮件</div>
+            <div>计划</div>
+            <div>状态</div>
+            <div class="align-right">操作</div>
         </div>
-    </div>
-
-    <div class="card">
-        <div class="card-title">⏰ 发送计划</div>
-        <div class="card-body">
-            <p><span>每日发送时间</span> <strong>{{ config.send_hour }}:{{ '%02d'|format(config.send_minute|int) }}</strong></p>
-            <p><span>下次发送</span> <strong>{{ next_run }}</strong></p>
+        {% for task in tasks %}
+        <div class="task-row">
+            <div class="task-main">
+                <a href="/tasks/{{ task.id }}/edit" class="task-name">{{ task.name }}</a>
+                <span>{{ task.city_display_name }} / {{ task.city }}</span>
+            </div>
+            <div class="task-mail">
+                <span>{{ task.smtp_from or '未配置发件人' }}</span>
+                <span>{{ task.email_to or '未配置收件人' }}</span>
+            </div>
+            <div class="task-time">
+                <span>{{ '%02d'|format(task.send_hour|int) }}:{{ '%02d'|format(task.send_minute|int) }}</span>
+                <span>{{ task.next_run }}</span>
+            </div>
+            <div>
+                {% if task.enabled %}
+                <span class="status status-on">启用</span>
+                {% else %}
+                <span class="status status-off">停用</span>
+                {% endif %}
+            </div>
+            <div class="row-actions">
+                <form method="POST" action="/tasks/{{ task.id }}/send-now">
+                    <button type="submit" class="btn btn-ghost">发送</button>
+                </form>
+                <a href="/tasks/{{ task.id }}/edit" class="btn btn-ghost">编辑</a>
+                <form method="POST" action="/tasks/{{ task.id }}/delete" onsubmit="return confirm('确定删除这个任务吗？');">
+                    <button type="submit" class="btn btn-danger">删除</button>
+                </form>
+            </div>
         </div>
+        {% endfor %}
     </div>
-</div>
-
-<div class="actions">
-    <form method="POST" action="/send-now" style="display:inline">
-        <button type="submit" class="btn btn-primary">🚀 立即发送测试邮件</button>
-    </form>
-    <a href="/config" class="btn btn-secondary">⚙️ 编辑配置</a>
-</div>
+    {% else %}
+    <div class="empty-state">
+        <h2>还没有任务</h2>
+        <p>创建第一条天气邮件任务后，系统会按设定时间自动发送。</p>
+        <a href="/tasks/new" class="btn btn-primary">新建任务</a>
+    </div>
+    {% endif %}
+</section>
 {% endblock %}

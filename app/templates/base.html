@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -7,20 +7,20 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <nav class="nav">
-        <div class="nav-inner">
-            <a href="/" class="nav-brand">🌤️ weather-email</a>
-            <div class="nav-links">
-                <a href="/">仪表盘</a>
-                <a href="/config">⚙️ 配置</a>
-            </div>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <a href="/" class="brand">weather-email</a>
+            <nav class="nav-links" aria-label="主导航">
+                <a href="/">任务</a>
+                <a href="/tasks/new">新建</a>
+            </nav>
         </div>
-    </nav>
+    </header>
 
     <main class="main">
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-        <div class="flash-container">
+        <div class="flash-stack">
             {% for category, message in messages %}
             <div class="flash flash-{{ category }}">{{ message }}</div>
             {% endfor %}

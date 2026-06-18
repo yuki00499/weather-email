@@ -1,92 +1,120 @@
-﻿{% extends "base.html" %}
-{% block title %}配置 - weather-email{% endblock %}
+{% extends "base.html" %}
+{% block title %}{% if mode == 'new' %}新建任务{% else %}编辑任务{% endif %} - weather-email{% endblock %}
 {% block content %}
-<h2>⚙️ 配置编辑</h2>
+<section class="page-heading">
+    <div>
+        <p class="eyebrow">{% if mode == 'new' %}新建任务{% else %}编辑任务{% endif %}</p>
+        <h1>{{ task.name or '天气邮件任务' }}</h1>
+    </div>
+    <a href="/" class="btn btn-secondary">返回任务</a>
+</section>
 
-<form method="POST" action="/config" class="config-form">
-    <fieldset>
-        <legend>📧 SMTP 邮件配置</legend>
-        <div class="form-row">
-            <div class="form-group">
+<form method="POST" class="task-form">
+    <section class="form-section">
+        <div class="section-copy">
+            <h2>基础信息</h2>
+            <p>用于在任务列表中识别这条发送计划。</p>
+        </div>
+        <div class="form-grid">
+            <div class="field field-wide">
+                <label for="name">任务名称</label>
+                <input type="text" id="name" name="name" value="{{ task.name }}" required>
+            </div>
+            <label class="switch-field">
+                <input type="checkbox" name="enabled" value="1" {% if task.enabled %}checked{% endif %}>
+                <span>
+                    <strong>启用任务</strong>
+                    <small>停用后不会自动发送，但可以保留配置。</small>
+                </span>
+            </label>
+        </div>
+    </section>
+
+    <section class="form-section">
+        <div class="section-copy">
+            <h2>天气内容</h2>
+            <p>wttr.in 支持拼音、英文城市名和部分机场代码。</p>
+        </div>
+        <div class="form-grid">
+            <div class="field">
+                <label for="city_display_name">城市显示名称</label>
+                <input type="text" id="city_display_name" name="city_display_name" value="{{ task.city_display_name }}" placeholder="无锡">
+            </div>
+            <div class="field">
+                <label for="city">城市代码</label>
+                <input type="text" id="city" name="city" value="{{ task.city }}" placeholder="Wuxi" required>
+            </div>
+            <div class="field field-wide">
+                <label for="subject_prefix">邮件主题前缀</label>
+                <input type="text" id="subject_prefix" name="subject_prefix" value="{{ task.subject_prefix }}">
+            </div>
+        </div>
+    </section>
+
+    <section class="form-section">
+        <div class="section-copy">
+            <h2>发件邮箱</h2>
+            <p>每个任务可以使用不同 SMTP 账号发送。</p>
+        </div>
+        <div class="form-grid">
+            <div class="field">
                 <label for="smtp_server">SMTP 服务器</label>
-                <input type="text" id="smtp_server" name="smtp_server" value="{{ config.smtp_server }}" required>
+                <input type="text" id="smtp_server" name="smtp_server" value="{{ task.smtp_server }}" required>
             </div>
-            <div class="form-group form-group-sm">
+            <div class="field field-small">
                 <label for="smtp_port">端口</label>
-                <input type="number" id="smtp_port" name="smtp_port" value="{{ config.smtp_port }}" required>
+                <input type="number" id="smtp_port" name="smtp_port" value="{{ task.smtp_port }}" required>
             </div>
-            <div class="form-group form-group-sm">
+            <div class="field field-small">
                 <label for="smtp_use_ssl">加密方式</label>
                 <select id="smtp_use_ssl" name="smtp_use_ssl">
-                    <option value="true" {% if config.smtp_use_ssl == 'true' %}selected{% endif %}>SSL (465)</option>
-                    <option value="false" {% if config.smtp_use_ssl == 'false' %}selected{% endif %}>STARTTLS (587)</option>
+                    <option value="true" {% if task.smtp_use_ssl == 'true' %}selected{% endif %}>SSL</option>
+                    <option value="false" {% if task.smtp_use_ssl == 'false' %}selected{% endif %}>STARTTLS</option>
                 </select>
             </div>
-        </div>
-        <div class="form-row">
-            <div class="form-group">
-                <label for="smtp_username">SMTP 用户名 (邮箱地址)</label>
-                <input type="email" id="smtp_username" name="smtp_username" value="{{ config.smtp_username }}">
+            <div class="field">
+                <label for="smtp_username">SMTP 用户名</label>
+                <input type="email" id="smtp_username" name="smtp_username" value="{{ task.smtp_username }}">
             </div>
-            <div class="form-group">
-                <label for="smtp_password">SMTP 密码 (授权码)</label>
-                <input type="password" id="smtp_password" name="smtp_password" value="{{ config.smtp_password }}">
+            <div class="field">
+                <label for="smtp_password">SMTP 密码或授权码</label>
+                <input type="password" id="smtp_password" name="smtp_password" value="{{ task.smtp_password }}">
             </div>
-        </div>
-        <div class="form-row">
-            <div class="form-group">
+            <div class="field">
                 <label for="smtp_from">发件人地址</label>
-                <input type="email" id="smtp_from" name="smtp_from" value="{{ config.smtp_from }}">
+                <input type="email" id="smtp_from" name="smtp_from" value="{{ task.smtp_from }}">
             </div>
-            <div class="form-group">
+            <div class="field">
                 <label for="smtp_from_name">发件人名称</label>
-                <input type="text" id="smtp_from_name" name="smtp_from_name" value="{{ config.smtp_from_name }}">
+                <input type="text" id="smtp_from_name" name="smtp_from_name" value="{{ task.smtp_from_name }}">
             </div>
         </div>
-        <div class="form-group">
-            <label for="email_to">收件人 (多个用英文逗号分隔)</label>
-            <input type="text" id="email_to" name="email_to" value="{{ config.email_to }}" placeholder="user@example.com">
-        </div>
-    </fieldset>
+    </section>
 
-    <fieldset>
-        <legend>🌍 天气设置</legend>
-        <div class="form-row">
-            <div class="form-group">
-                <label for="city_display_name">城市显示名称</label>
-                <input type="text" id="city_display_name" name="city_display_name" value="{{ config.city_display_name }}" placeholder="例如: 无锡">
+    <section class="form-section">
+        <div class="section-copy">
+            <h2>收件与时间</h2>
+            <p>每天按 Asia/Hong_Kong 时区触发发送。</p>
+        </div>
+        <div class="form-grid">
+            <div class="field field-wide">
+                <label for="email_to">收件人</label>
+                <input type="text" id="email_to" name="email_to" value="{{ task.email_to }}" placeholder="user@example.com, another@example.com">
             </div>
-            <div class="form-group">
-                <label for="city">wttr.in 城市代码</label>
-                <input type="text" id="city" name="city" value="{{ config.city }}" placeholder="例如: Wuxi, Beijing, Tokyo">
-                <small>参考 <a href="https://wttr.in/:help" target="_blank">wttr.in 文档</a>，支持拼音、英文名、机场代码等</small>
+            <div class="field field-small">
+                <label for="send_hour">小时</label>
+                <input type="number" id="send_hour" name="send_hour" min="0" max="23" value="{{ task.send_hour }}" required>
+            </div>
+            <div class="field field-small">
+                <label for="send_minute">分钟</label>
+                <input type="number" id="send_minute" name="send_minute" min="0" max="59" value="{{ task.send_minute }}" required>
             </div>
         </div>
-        <div class="form-group">
-            <label for="subject_prefix">邮件主题前缀</label>
-            <input type="text" id="subject_prefix" name="subject_prefix" value="{{ config.subject_prefix }}">
-        </div>
-    </fieldset>
+    </section>
 
-    <fieldset>
-        <legend>⏰ 发送时间</legend>
-        <div class="form-row form-row-center">
-            <div class="form-group form-group-sm">
-                <label for="send_hour">小时 (0-23)</label>
-                <input type="number" id="send_hour" name="send_hour" min="0" max="23" value="{{ config.send_hour }}" required>
-            </div>
-            <span class="time-sep">:</span>
-            <div class="form-group form-group-sm">
-                <label for="send_minute">分钟 (0-59)</label>
-                <input type="number" id="send_minute" name="send_minute" min="0" max="59" value="{{ config.send_minute }}" required>
-            </div>
-            <span class="timezone-hint">时区: Asia/Hong_Kong (UTC+8)</span>
-        </div>
-    </fieldset>
-
-    <div class="form-actions">
-        <button type="submit" class="btn btn-primary">💾 保存配置</button>
+    <div class="sticky-actions">
         <a href="/" class="btn btn-secondary">取消</a>
+        <button type="submit" class="btn btn-primary">保存任务</button>
     </div>
 </form>
 {% endblock %}

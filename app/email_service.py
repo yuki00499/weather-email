@@ -198,6 +198,7 @@ def send_email(config, html_body, subject_extra=""):
     smtp_from = config["smtp_from"]
     smtp_from_name = config.get("smtp_from_name", "天气助手")
     email_to = config["email_to"]
+    recipients = [addr.strip() for addr in email_to.split(",") if addr.strip()]
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = Header(f"{subject_prefix} {today_str} {subject_extra}", "utf-8")
@@ -216,5 +217,5 @@ def send_email(config, html_body, subject_extra=""):
         server.starttls()
 
     server.login(config["smtp_username"], config["smtp_password"])
-    server.sendmail(smtp_from, email_to, msg.as_string())
+    server.sendmail(smtp_from, recipients, msg.as_string())
     server.quit()
