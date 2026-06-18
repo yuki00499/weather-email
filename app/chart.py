@@ -47,13 +47,13 @@ WEEKDAY_CN = {
     "Thursday": "周四", "Friday": "周五", "Saturday": "周六", "Sunday": "周日",
 }
 
-# 图表配色 — 与邮件主题 #4facfe / #00f2fe 协调
-COLOR_LINE = "#4facfe"          # 折线
-COLOR_FILL = "#4facfe33"         # 折线下方半透明填充
-COLOR_MAX = "#ff6b6b"           # 最高温
-COLOR_MIN = "#4facfe"           # 最低温
-COLOR_GRID = "#e8e8e8"
-COLOR_BG = "#fafbfc"
+# 图表配色 — 与新版邮件的克制浅色主题协调
+COLOR_LINE = "#2f5f5b"          # 今日趋势
+COLOR_FILL = "#2f5f5b22"        # 趋势下方半透明填充
+COLOR_MAX = "#c96f5d"           # 最高温
+COLOR_MIN = "#4e7874"           # 最低温
+COLOR_GRID = "#e8e3dc"
+COLOR_BG = "#f7f5f1"
 
 
 def format_date_label(date_str):
@@ -147,18 +147,18 @@ def build_temperature_chart(data):
             ax.annotate(
                 f"{t:.0f}°", (h, t),
                 textcoords="offset points", xytext=(0, 14),
-                fontsize=9, ha="center", color="#444",
+                fontsize=9, ha="center", color="#34383e",
                 fontweight="bold",
             )
 
         ax.set_title("今日逐小时气温变化", fontsize=13, fontweight="bold",
-                     color="#333", pad=10)
-        ax.set_ylabel("温度 (°C)", fontsize=9, color="#888")
+                     color="#1f2328", pad=10)
+        ax.set_ylabel("温度 (°C)", fontsize=9, color="#747b84")
         ax.set_ylim(min(temps) - 3, max(temps) + 3)
         ax.set_xticks(hours)
-        ax.set_xticklabels([f"{h:02d}:00" for h in hours], fontsize=8, color="#888")
+        ax.set_xticklabels([f"{h:02d}:00" for h in hours], fontsize=8, color="#747b84")
         ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%d°"))
-        ax.tick_params(axis="y", labelsize=8, colors="#888")
+        ax.tick_params(axis="y", labelsize=8, colors="#747b84")
         ax.set_xlim(hours[0] - 0.8, hours[-1] + 0.8)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
@@ -186,7 +186,7 @@ def build_temperature_chart(data):
             ax.annotate(
                 f"{t:.0f}°", (xi, t),
                 textcoords="offset points", xytext=(0, 12),
-                fontsize=8, ha="center", color="#e55",
+                fontsize=8, ha="center", color=COLOR_MAX,
                 fontweight="bold",
             )
         # 最低温数据标签（下方）
@@ -194,15 +194,15 @@ def build_temperature_chart(data):
             ax.annotate(
                 f"{t:.0f}°", (xi, t),
                 textcoords="offset points", xytext=(0, -16),
-                fontsize=8, ha="center", color="#4a9",
+                fontsize=8, ha="center", color=COLOR_MIN,
                 fontweight="bold",
             )
 
         ax.set_title("未来几日气温趋势", fontsize=13, fontweight="bold",
-                     color="#333", pad=10)
-        ax.set_ylabel("温度 (°C)", fontsize=9, color="#888")
+                     color="#1f2328", pad=10)
+        ax.set_ylabel("温度 (°C)", fontsize=9, color="#747b84")
         ax.set_xticks(x)
-        ax.set_xticklabels(day_labels, fontsize=8, color="#666")
+        ax.set_xticklabels(day_labels, fontsize=8, color="#5d646d")
         ax.legend(loc="upper right", fontsize=8, framealpha=0.9,
                   edgecolor=COLOR_GRID)
 
@@ -210,7 +210,7 @@ def build_temperature_chart(data):
         y_pad = 4 if all_temps else 5
         ax.set_ylim(min(all_temps) - y_pad, max(all_temps) + y_pad)
         ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%d°"))
-        ax.tick_params(axis="y", labelsize=8, colors="#888")
+        ax.tick_params(axis="y", labelsize=8, colors="#747b84")
         ax.set_xlim(x[0] - 0.5, x[-1] + 0.5)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)

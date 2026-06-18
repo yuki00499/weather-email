@@ -60,7 +60,7 @@ def build_html(data, config):
             chart_html = (
                 '<div class="chart-section">'
                 '<img src="data:image/png;base64,' + chart_b64 + '" '
-                'style="width:100%;max-width:560px;display:block;margin:0 auto;border-radius:12px;" '
+                'style="width:100%;max-width:576px;display:block;margin:0 auto;border-radius:8px;border:1px solid #e4dfd7;" '
                 'alt="气温趋势图">'
                 '</div>'
             )
@@ -78,10 +78,10 @@ def build_html(data, config):
         h_rain = h["chanceofrain"]
         hourly_rows += (
             f"<tr>"
-            f"<td>{hour_str}</td>"
+            f"<td class='td-time'>{hour_str}</td>"
             f"<td>{h_icon} {h_desc}</td>"
-            f"<td>{h_temp}°C</td>"
-            f"<td>{h_rain}%</td>"
+            f"<td class='td-num'>{h_temp}°C</td>"
+            f"<td class='td-num'>{h_rain}%</td>"
             f"</tr>"
         )
 
@@ -115,11 +115,11 @@ def build_html(data, config):
         d_rain = rep.get("chanceofrain", "")
         future_rows += (
             f"<tr>"
-            f"<td>{day_label}</td>"
+            f"<td class='td-time'>{day_label}</td>"
             f"<td>{d_icon} {d_desc}</td>"
-            f"<td>{day_max}°C</td>"
-            f"<td>{day_min}°C</td>"
-            f"<td>{d_rain}%</td>"
+            f"<td class='td-num'>{day_max}°C</td>"
+            f"<td class='td-num'>{day_min}°C</td>"
+            f"<td class='td-num'>{d_rain}%</td>"
             f"</tr>"
         )
     html = f"""<!DOCTYPE html>
@@ -129,61 +129,99 @@ def build_html(data, config):
 <meta name=viewport content='width=device-width,initial-scale=1'>
 <title>{city_name}天气日报</title>
 <style>
-    body {{ margin:0; padding:0; background:#f5f7fa; font-family:'Microsoft YaHei','PingFang SC',sans-serif; }}
-    .container {{ max-width:600px; margin:20px auto; background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.08); }}
-    .header {{ background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%); padding:30px; text-align:center; color:#fff; }}
-    .header h1 {{ margin:0; font-size:22px; font-weight:500; }}
-    .header .date {{ font-size:13px; opacity:0.85; margin-top:6px; }}
-    .weather-card {{ text-align:center; padding:30px; }}
-    .weather-icon {{ font-size:64px; }}
-    .temperature {{ font-size:56px; font-weight:300; color:#333; margin:10px 0; }}
-    .weather-desc {{ font-size:15px; color:#888; }}
-    .chart-section {{ padding:0 20px 10px; }}
-    .details {{ display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:0 30px 20px; }}
-    .detail-item {{ background:#f8fafc; border-radius:12px; padding:14px; }}
-    .detail-label {{ font-size:12px; color:#aaa; margin-bottom:4px; }}
-    .detail-value {{ font-size:16px; color:#333; font-weight:500; }}
-    .section-title {{ padding:10px 30px; font-size:15px; color:#555; font-weight:500; }}
-    .hourly-table {{ width:calc(100% - 60px); border-collapse:collapse; margin:0 30px 10px; }}
-    .hourly-table th {{ background:#f0f2f8; padding:8px 12px; text-align:left; font-size:12px; color:#999; }}
-    .hourly-table td {{ padding:8px 12px; font-size:13px; color:#555; border-bottom:1px solid #f0f0f0; }}
-    .suggestion {{ margin:20px 30px; padding:16px 20px; background:#fff8e6; border-left:4px solid #ffc107; border-radius:8px; font-size:14px; color:#666; line-height:1.8; }}
-    .footer {{ text-align:center; padding:20px 30px; font-size:12px; color:#ccc; border-top:1px solid #f0f0f0; }}
+    body {{ margin:0; padding:0; background:#f4f1ec; font-family:'Microsoft YaHei','PingFang SC','Segoe UI',Arial,sans-serif; color:#24272b; }}
+    .shell {{ width:100%; background:#f4f1ec; padding:28px 0; }}
+    .container {{ max-width:640px; margin:0 auto; background:#ffffff; border:1px solid #e4dfd7; border-radius:8px; overflow:hidden; }}
+    .header {{ padding:28px 32px 22px; border-bottom:1px solid #ece7df; }}
+    .kicker {{ margin:0 0 8px; font-size:12px; letter-spacing:1.6px; color:#6c817d; font-weight:700; text-transform:uppercase; }}
+    .title {{ margin:0; font-size:24px; line-height:1.25; color:#1f2328; font-weight:700; }}
+    .date {{ margin-top:8px; font-size:13px; color:#747b84; }}
+    .hero {{ padding:30px 32px 24px; }}
+    .hero-table {{ width:100%; border-collapse:collapse; }}
+    .hero-icon {{ width:96px; font-size:58px; line-height:1; vertical-align:middle; }}
+    .temperature {{ margin:0; font-size:58px; line-height:1; color:#1f2328; font-weight:300; letter-spacing:0; }}
+    .weather-desc {{ margin-top:8px; font-size:15px; color:#5d646d; }}
+    .pill {{ display:inline-block; margin-top:12px; padding:6px 10px; border-radius:999px; background:#edf4f2; color:#2f5f5b; font-size:12px; font-weight:700; }}
+    .details {{ width:calc(100% - 64px); margin:0 32px 8px; border-collapse:separate; border-spacing:0 10px; }}
+    .detail-item {{ width:50%; padding:14px 16px; background:#fbfaf8; border-top:1px solid #ece7df; border-bottom:1px solid #ece7df; }}
+    .detail-left {{ border-left:1px solid #ece7df; border-radius:8px 0 0 8px; }}
+    .detail-right {{ border-right:1px solid #ece7df; border-radius:0 8px 8px 0; }}
+    .detail-label {{ font-size:12px; color:#8b929b; margin-bottom:4px; }}
+    .detail-value {{ font-size:15px; color:#24272b; font-weight:700; }}
+    .chart-section {{ padding:18px 32px 8px; }}
+    .section {{ padding:18px 32px 4px; }}
+    .section-title {{ margin:0 0 10px; font-size:15px; color:#1f2328; font-weight:700; }}
+    .forecast-table {{ width:100%; border-collapse:collapse; border:1px solid #e8e3dc; border-radius:8px; overflow:hidden; }}
+    .forecast-table th {{ background:#f7f5f1; padding:10px 12px; text-align:left; font-size:12px; color:#777f88; font-weight:700; border-bottom:1px solid #e8e3dc; }}
+    .forecast-table td {{ padding:10px 12px; font-size:13px; color:#34383e; border-bottom:1px solid #efebe5; }}
+    .forecast-table tr:last-child td {{ border-bottom:none; }}
+    .td-time {{ color:#6f777f; white-space:nowrap; }}
+    .td-num {{ text-align:right; white-space:nowrap; }}
+    .suggestion {{ margin:22px 32px 26px; padding:16px 18px; background:#f7f5f1; border:1px solid #e4dfd7; border-left:4px solid #6c817d; border-radius:8px; font-size:14px; color:#4c535b; line-height:1.8; }}
+    .footer {{ padding:18px 32px 24px; text-align:center; font-size:12px; color:#9aa0a8; border-top:1px solid #ece7df; }}
+    @media only screen and (max-width:680px) {{
+        .shell {{ padding:0; }}
+        .container {{ width:100%; border-radius:0; border-left:none; border-right:none; }}
+        .header, .hero, .section, .chart-section, .footer {{ padding-left:20px; padding-right:20px; }}
+        .details {{ width:calc(100% - 40px); margin-left:20px; margin-right:20px; }}
+        .temperature {{ font-size:48px; }}
+        .hero-icon {{ width:72px; font-size:46px; }}
+        .suggestion {{ margin-left:20px; margin-right:20px; }}
+    }}
 </style>
 </head>
 <body>
+<div class=shell>
 <div class=container>
     <div class=header>
-        <h1>🌇️ {city_name}天气日报</h1>
+        <div class=kicker>Daily Weather Brief</div>
+        <h1 class=title>{city_name}天气日报</h1>
         <div class=date>{today_str}</div>
     </div>
-    <div class=weather-card>
-        <div class=weather-icon>{weather_icon}</div>
-        <div class=temperature>{temp_c}°C</div>
-        <div class=weather-desc>体感 {feels}°C · {weather_desc}</div>
+    <div class=hero>
+        <table class=hero-table role=presentation>
+            <tr>
+                <td class=hero-icon>{weather_icon}</td>
+                <td>
+                    <div class=temperature>{temp_c}°C</div>
+                    <div class=weather-desc>{weather_desc} · 体感 {feels}°C</div>
+                    <div class=pill>每天 {send_hour:02d}:{send_minute:02d} 自动发送</div>
+                </td>
+            </tr>
+        </table>
     </div>
     {chart_html}
-    <div class=details>
-        <div class=detail-item><div class=detail-label>最高 / 最低</div><div class=detail-value>{max_temp}°C / {min_temp}°C</div></div>
-        <div class=detail-item><div class=detail-label>湿度</div><div class=detail-value>{humidity}%</div></div>
-        <div class=detail-item><div class=detail-label>风向 / 风速</div><div class=detail-value>{wind_cn} · {wind_speed} km/h</div></div>
-        <div class=detail-item><div class=detail-label>能见度</div><div class=detail-value>{visibility} km</div></div>
-        <div class=detail-item><div class=detail-label>紫外线指数</div><div class=detail-value>{uv}</div></div>
-        <div class=detail-item><div class=detail-label>日出 / 日落</div><div class=detail-value>{sunrise} / {sunset}</div></div>
+    <table class=details role=presentation>
+        <tr>
+            <td class='detail-item detail-left'><div class=detail-label>最高 / 最低</div><div class=detail-value>{max_temp}°C / {min_temp}°C</div></td>
+            <td class='detail-item detail-right'><div class=detail-label>湿度</div><div class=detail-value>{humidity}%</div></td>
+        </tr>
+        <tr>
+            <td class='detail-item detail-left'><div class=detail-label>风向 / 风速</div><div class=detail-value>{wind_cn} · {wind_speed} km/h</div></td>
+            <td class='detail-item detail-right'><div class=detail-label>能见度</div><div class=detail-value>{visibility} km</div></td>
+        </tr>
+        <tr>
+            <td class='detail-item detail-left'><div class=detail-label>紫外线指数</div><div class=detail-value>{uv}</div></td>
+            <td class='detail-item detail-right'><div class=detail-label>日出 / 日落</div><div class=detail-value>{sunrise} / {sunset}</div></td>
+        </tr>
+    </table>
+    <div class=section>
+        <h2 class=section-title>逐小时预报</h2>
+        <table class=forecast-table>
+            <tr><th>时间</th><th>天气</th><th class=td-num>温度</th><th class=td-num>降雨</th></tr>
+            {hourly_rows}
+        </table>
     </div>
-    <div class=section-title>⏰ 逐小时预报</div>
-    <table class=hourly-table>
-        <tr><th>时间</th><th>天气</th><th>温度</th><th>降雨概率</th></tr>
-        {hourly_rows}
-    </table>
-    <div class=section-title>📅 未来几日天气</div>
-    <table class=hourly-table>
-        <tr><th>日期</th><th>天气</th><th>最高温</th><th>最低温</th><th>降雨概率</th></tr>
-        {future_rows}
-    </table>
-    <div class=section-title>💡 生活建议</div>
+    <div class=section>
+        <h2 class=section-title>未来几日天气</h2>
+        <table class=forecast-table>
+            <tr><th>日期</th><th>天气</th><th class=td-num>最高</th><th class=td-num>最低</th><th class=td-num>降雨</th></tr>
+            {future_rows}
+        </table>
+    </div>
     <div class=suggestion>{suggestion_text}</div>
-    <div class=footer>数据来源: wttr.in · 每天 {send_hour:02d}:{send_minute:02d} 自动发送</div>
+    <div class=footer>数据来源: wttr.in · weather-email</div>
+</div>
 </div>
 </body>
 </html>"""
